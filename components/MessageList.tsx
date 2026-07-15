@@ -9,7 +9,6 @@ type Props = {
   onRetry?: (messageId: string) => void;
 };
 
-/** 距底部小于该值视为「贴底」，才自动跟随新内容 */
 const STICK_THRESHOLD_PX = 96;
 
 function isNearBottom(el: HTMLElement, threshold = STICK_THRESHOLD_PX): boolean {
@@ -19,11 +18,13 @@ function isNearBottom(el: HTMLElement, threshold = STICK_THRESHOLD_PX): boolean 
 
 export function MessageList({ messages, onRetry }: Props) {
   const listRef = useRef<HTMLDivElement>(null);
-  const endRef = useRef<HTMLDivElement>(null);
-  /** 用户是否处于贴底跟随模式；上翻查看历史时为 false */
   const stickToBottomRef = useRef(true);
+  const rafRef = useRef<number | null>(null);
+  /** 程序化滚动时忽略 scroll 事件，避免贴底判定被打乱 */
+  const ignoreScrollRef = useRef(false);
 
   const handleScroll = useCallback(() => {
+    if (ignoreScrollRef.current) return;
     const el = listRef.current;
     if (!el) return;
     stickToBottomRef.current = isNearBottom(el);
@@ -32,7 +33,29 @@ export function MessageList({ messages, onRetry }: Props) {
   useLayoutEffect(() => {
     const el = listRef.current;
     if (!el || !stickToBottomRef.current) return;
-    el.scrollTop = el.scrollHeight;
+
+    if (rafRef.current != null) {
+      cancelAnimationFrame(rafRef.current);
+    }
+
+    rafRef.current = requestAnimationFrame(() => {
+      rafRef.current = null;
+      const node = listRef.current;
+      if (!node || !stickToBottomRef.current) return;
+      ignoreScrollRef.current = true;
+      node.scrollTop = node.scrollHeight;
+      // 下一帧再恢复，避免本次 scroll 事件误判为「离开底部」
+      requestAnimationFrame(() => {
+        ignoreScrollRef.current = false;
+      });
+    });
+
+    return () => {
+      if (rafRef.current != null) {
+        cancelAnimationFrame(rafRef.current);
+        rafRef.current = null;
+      }
+    };
   }, [messages]);
 
   return (
@@ -54,7 +77,7 @@ export function MessageList({ messages, onRetry }: Props) {
           <MessageBubble key={m.id} message={m} onRetry={onRetry} />
         ))
       )}
-      <div ref={endRef} />
+      <div />
     </div>
   );
 }

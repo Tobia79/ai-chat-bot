@@ -359,6 +359,8 @@ export default function HomePage() {
             }
             modeLabel={modeLabel}
             hint={busyHint}
+            canStop={generating}
+            onStop={handleStop}
           />
           <MessageList
             key={currentId ?? "empty"}
@@ -368,9 +370,7 @@ export default function HomePage() {
           <Composer
             disabled={false}
             busyHint={busyHint}
-            canStop={generating}
             onSend={handleSend}
-            onStop={handleStop}
           />
         </section>
       </div>

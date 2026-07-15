@@ -6,17 +6,9 @@ type Props = {
   disabled?: boolean;
   busyHint?: string | null;
   onSend: (text: string) => void;
-  onStop?: () => void;
-  canStop?: boolean;
 };
 
-export function Composer({
-  disabled,
-  busyHint,
-  onSend,
-  onStop,
-  canStop,
-}: Props) {
+export function Composer({ disabled, busyHint, onSend }: Props) {
   const [value, setValue] = useState("");
   const fieldId = useId();
   const helpId = useId();
@@ -55,14 +47,9 @@ export function Composer({
         }}
       />
       <p id={helpId} className="composer-help">
-        Enter 发送，Shift + Enter 换行
+        Enter 发送，Shift + Enter 换行。生成中请用顶部「停止生成」。
       </p>
       <div className="composer-actions">
-        {canStop ? (
-          <button type="button" className="btn-danger" onClick={onStop}>
-            停止生成
-          </button>
-        ) : null}
         <button
           type="button"
           className="btn primary"

@@ -15,9 +15,17 @@ type Props = {
   status: MessageStatus | "idle";
   modeLabel?: string;
   hint?: string | null;
+  canStop?: boolean;
+  onStop?: () => void;
 };
 
-export function StatusBar({ status, modeLabel, hint }: Props) {
+export function StatusBar({
+  status,
+  modeLabel,
+  hint,
+  canStop,
+  onStop,
+}: Props) {
   const busy = status === "pending" || status === "streaming";
   const pillClass = [
     "status-pill",
@@ -36,6 +44,18 @@ export function StatusBar({ status, modeLabel, hint }: Props) {
       </span>
       {modeLabel ? <span className="mode-chip">模式 · {modeLabel}</span> : null}
       {hint ? <span className="status-hint">{hint}</span> : null}
+      {canStop ? (
+        <div className="status-bar-actions">
+          <button
+            type="button"
+            className="btn-danger"
+            onClick={onStop}
+            aria-label="停止当前生成"
+          >
+            停止生成
+          </button>
+        </div>
+      ) : null}
     </div>
   );
 }
